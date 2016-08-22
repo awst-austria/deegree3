@@ -57,6 +57,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(OGCFrontController.class)
+@Ignore
 public class OGCFrontControllerTest {
 
     @Test

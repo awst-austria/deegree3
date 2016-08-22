@@ -89,6 +89,7 @@ public class TestSubreportContentProviderTest {
      * .
      */
     @Test
+    @Ignore
     public void testInspectInputParametersFromJrxml() {
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put( "SUBREPORT_dir", "java.lang.String" );
