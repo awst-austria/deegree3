@@ -50,6 +50,7 @@ import org.deegree.services.wps.provider.jrxml.ParameterDescription;
 import org.deegree.services.wps.provider.jrxml.jaxb.process.ResourceBundle;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Ignore;
 
 /**
  * @author <a href="mailto:goltz@lat-lon.de">Lyn Goltz</a>

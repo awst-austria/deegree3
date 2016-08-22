@@ -47,6 +47,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import java.net.URL;
 
 import org.junit.Test;
+import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
