@@ -62,6 +62,7 @@ import org.deegree.workspace.standard.DefaultWorkspace;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Ignore;
 
 /**
  * Basic test cases for the {@link RemoteWMSTileStore}.
