@@ -224,4 +224,12 @@ class AbstractProcessExecution {
     public void addBinaryInput( String id, String idCodeSpace, InputStream inputStream, String mimeType, String encoding ) {
         inputs.add( new BinaryInput( new CodeType( id, idCodeSpace ), inputStream, mimeType, encoding ) );
     }
+
+    /**
+     * Adds input parameter of type ExecutionInput.
+     * @param input The input parameter
+     */
+    public void addExecutionInput(ExecutionInput input) {
+        inputs.add(input);
+    }
 }
