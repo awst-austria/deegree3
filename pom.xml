@@ -21,7 +21,7 @@
       <id>deegree-repo</id>
       <url>http://repo.deegree.org/content/groups/public/</url>
       <releases>
-        <updatePolicy>never</updatePolicy>
+        <updatePolicy>daily</updatePolicy>
       </releases>
       <snapshots>
         <enabled>true</enabled>
