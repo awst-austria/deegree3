@@ -30,13 +30,18 @@
 
   <distributionManagement>
     <repository>
+        <id>internal.repo</id>
+        <name>Temporary Staging Repository</name>
+        <url>file://${user.dir}/target/mvn-repo</url>
+    </repository>
+<!--    <repository>
       <id>deegree-releases</id>
       <url>http://repo.deegree.org/content/repositories/releases/</url>
     </repository>
     <snapshotRepository>
       <id>deegree-snapshots</id>
       <url>http://repo.deegree.org/content/repositories/snapshots/</url>
-    </snapshotRepository>
+    </snapshotRepository>-->
     <site>
       <id>apidoc.deegree.org</id>
 <!--
@@ -174,11 +179,19 @@
           <artifactId>maven-clean-plugin</artifactId>
           <version>2.5</version>
         </plugin>
-        <plugin>
+<!--        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-deploy-plugin</artifactId>
           <version>2.7</version>
+        </plugin>-->
+        <plugin>
+            <artifactId>maven-deploy-plugin</artifactId>
+            <version>2.8.2</version>
+            <configuration>
+                <altDeploymentRepository>internal.repo::default::file://${user.dir}/target/mvn-repo</altDeploymentRepository>
+            </configuration>
         </plugin>
+
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-install-plugin</artifactId>
@@ -291,6 +304,37 @@
           <goals>install</goals>
         </configuration>
       </plugin>
+
+      <!-- Workaround for putting changed libs on github as a repository, see
+           https://stackoverflow.com/questions/14013644/hosting-a-maven-repository-on-github/ -->
+      <plugin>
+        <groupId>com.github.github</groupId>
+        <artifactId>site-maven-plugin</artifactId>
+        <version>0.12</version>
+        <configuration>
+          <message>Maven artifacts for ${project.version}</message>      <!-- git commit message -->
+          <noJekyll>true</noJekyll>                                      <!-- disable webpage processing -->
+          <outputDirectory>${user.dir}/target/mvn-repo</outputDirectory> <!-- matches distribution management repository url above -->
+          <branch>refs/heads/mvn-repo</branch>                           <!-- remote branch name -->
+
+          <includes> <!-- list the changed modules here -->
+            <include>**/*</include>
+          </includes>
+
+          <repositoryName>deegree3</repositoryName>       <!-- github repo name -->
+          <repositoryOwner>awst-baum</repositoryOwner>    <!-- github username -->
+        </configuration>
+        <executions>
+          <!-- run site-maven-plugin's 'site' target as part of the build's normal 'deploy' phase -->
+          <execution>
+            <goals>
+              <goal>site</goal>
+            </goals>
+            <phase>deploy</phase>
+          </execution>
+        </executions>
+      </plugin>
+
     </plugins>
   </build>
 
@@ -994,6 +1038,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <buildTimestamp>${maven.build.timestamp}</buildTimestamp>
+    <github.global.server>github</github.global.server>
   </properties>
 
   <modules>
