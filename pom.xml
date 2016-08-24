@@ -1,4 +1,3 @@
-<?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.deegree</groupId>
@@ -31,13 +30,18 @@
 
   <distributionManagement>
     <repository>
+        <id>internal.repo</id>
+        <name>Temporary Staging Repository</name>
+        <url>file://${user.dir}/target/mvn-repo</url>
+    </repository>
+<!--    <repository>
       <id>deegree-releases</id>
       <url>http://repo.deegree.org/content/repositories/releases/</url>
     </repository>
     <snapshotRepository>
       <id>deegree-snapshots</id>
       <url>http://repo.deegree.org/content/repositories/snapshots/</url>
-    </snapshotRepository>
+    </snapshotRepository>-->
     <site>
       <id>apidoc.deegree.org</id>
 <!--
@@ -46,6 +50,10 @@
       <url>file:///${site.dir}/${project.version}/</url>
     </site>
   </distributionManagement>
+
+  <prerequisites>
+    <maven>3.0.3</maven>
+  </prerequisites>
 
   <pluginRepositories>
     <pluginRepository>
@@ -177,11 +185,19 @@
           <artifactId>maven-clean-plugin</artifactId>
           <version>2.5</version>
         </plugin>
-        <plugin>
+<!--        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-deploy-plugin</artifactId>
           <version>2.7</version>
+        </plugin>-->
+        <plugin>
+            <artifactId>maven-deploy-plugin</artifactId>
+            <version>2.8.2</version>
+            <configuration>
+                <altDeploymentRepository>internal.repo::default::file://${user.dir}/target/mvn-repo</altDeploymentRepository>
+            </configuration>
         </plugin>
+
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-install-plugin</artifactId>
@@ -249,6 +265,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
+        <version>2.4</version>
         <configuration>
           <preparationGoals>clean install</preparationGoals>
           <autoVersionSubmodules>true</autoVersionSubmodules>
@@ -258,6 +275,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.0</version>
         <configuration>
           <source>${java.version}</source>
           <target>${java.version}</target>
@@ -268,6 +286,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
+        <version>2.6</version>
         <configuration>
           <encoding>${project.build.sourceEncoding}</encoding>
         </configuration>
@@ -275,6 +294,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>buildnumber-maven-plugin</artifactId>
+        <version>1.2</version>
         <executions>
           <execution>
             <phase>validate</phase>
@@ -320,7 +340,7 @@
             <goals>
               <goal>enforce</goal>
             </goals>
-            <configuration>
+        <configuration>
               <rules>
                 <requireMavenVersion>
                   <version>3.0.5</version>
@@ -329,7 +349,7 @@
                   <version>1.8</version>
                 </requireJavaVersion>
               </rules>
-            </configuration>
+        </configuration>
           </execution>
         </executions>
       </plugin>
@@ -338,7 +358,7 @@
 
   <reporting>
     <plugins>
-      <plugin>
+      <!--plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>2.10.3</version>
@@ -350,7 +370,7 @@
           <minmemory>512m</minmemory>
           <maxmemory>4g</maxmemory>
         </configuration>
-      </plugin>
+      </plugin-->
     </plugins>
   </reporting>
 
@@ -390,7 +410,7 @@
         <groupId>org.xmlmatchers</groupId>
         <artifactId>xml-matchers</artifactId>
         <version>1.0-RC1</version>
-      <scope>test</scope>
+        <scope>test</scope>
       </dependency>
       <!-- apache commons -->
       <dependency>
@@ -835,7 +855,7 @@
         <groupId>org.apache.xmlgraphics</groupId>
         <artifactId>batik-codec</artifactId>
         <version>1.7</version>
-        </dependency>
+      </dependency>
       <dependency>
         <groupId>org.apache.xmlgraphics</groupId>
         <artifactId>batik-xml</artifactId>
@@ -1062,6 +1082,7 @@
     <java.version>1.8</java.version>
     <site.dir>${user.home}/Sites</site.dir>
     <deegree-maven-plugin.version>1.20</deegree-maven-plugin.version>
+    <github.global.server>github</github.global.server>
   </properties>
 
   <modules>
