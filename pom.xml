@@ -315,7 +315,7 @@
           <message>Maven artifacts for ${project.version}</message>      <!-- git commit message -->
           <noJekyll>true</noJekyll>                                      <!-- disable webpage processing -->
           <outputDirectory>${user.dir}/target/mvn-repo</outputDirectory> <!-- matches distribution management repository url above -->
-          <branch>refs/heads/mvn-repo</branch>                           <!-- remote branch name -->
+          <branch>refs/heads/mvn-repo-stable</branch>                    <!-- remote branch name -->
 
           <includes> <!-- list the changed modules here -->
             <include>**/*</include>
