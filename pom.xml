@@ -316,6 +316,7 @@
           <goals>install</goals>
         </configuration>
       </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
@@ -354,6 +355,37 @@
           </execution>
         </executions>
       </plugin>
+
+      <!-- Workaround for putting changed libs on github as a repository, see
+           https://stackoverflow.com/questions/14013644/hosting-a-maven-repository-on-github/ -->
+      <plugin>
+        <groupId>com.github.github</groupId>
+        <artifactId>site-maven-plugin</artifactId>
+        <version>0.12</version>
+        <configuration>
+          <message>Maven artifacts for ${project.version}</message>      <!-- git commit message -->
+          <noJekyll>true</noJekyll>                                      <!-- disable webpage processing -->
+          <outputDirectory>${user.dir}/target/mvn-repo</outputDirectory> <!-- matches distribution management repository url above -->
+          <branch>refs/heads/mvn-repo</branch>                           <!-- remote branch name -->
+
+          <includes> <!-- list the changed modules here -->
+            <include>**/*</include>
+          </includes>
+
+          <repositoryName>deegree3</repositoryName>       <!-- github repo name -->
+          <repositoryOwner>awst-baum</repositoryOwner>    <!-- github username -->
+        </configuration>
+        <executions>
+          <!-- run site-maven-plugin's 'site' target as part of the build's normal 'deploy' phase -->
+          <execution>
+            <goals>
+              <goal>site</goal>
+            </goals>
+            <phase>deploy</phase>
+          </execution>
+        </executions>
+      </plugin>
+
     </plugins>
   </build>
 
@@ -1269,8 +1301,4 @@
     </mailingList>
   </mailingLists>
 
-  <ciManagement>
-  	<system>Jenkins CI</system>
-  	<url>http://buildserver.deegree.org/</url>
-  </ciManagement>
 </project>
