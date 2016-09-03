@@ -92,6 +92,7 @@ public class RemoteWMSTileStoreTest {
     }
 
     @Test
+    @Ignore
     public void testGetMetdataEPSG26912() {
         GenericTileStore store = (GenericTileStore) ws.getSubsystemManager( TileStoreManager.class ).get( "tiles26912" );
         SpatialMetadata metadata = store.getTileDataSet( "tiles26912" ).getTileMatrixSet().getSpatialMetadata();
