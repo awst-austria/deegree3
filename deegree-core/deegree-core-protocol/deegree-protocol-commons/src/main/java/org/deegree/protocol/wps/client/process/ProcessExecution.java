@@ -51,6 +51,7 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import org.apache.commons.codec.binary.Base64;
 import org.deegree.commons.ows.exception.OWSException;
 import org.deegree.commons.tom.ows.CodeType;
 import org.deegree.protocol.ows.exception.OWSExceptionReport;
@@ -297,6 +298,23 @@ public class ProcessExecution extends AbstractProcessExecution {
         return lastResponse.getStatus().getExceptionReport();
     }
 
+    private URLConnection getURLConnectionWithAuth( URL url )
+                            throws IOException {
+
+        URLConnection conn = url.openConnection();
+        
+        String username = client.getUsername();
+        String password = client.getPassword();
+        
+        if ( username != null && password != null ) {
+            String credentials = String.format( "%s:%s", username, password );
+            String basicAuth = "Basic " + new String( new Base64().encode( credentials.getBytes() ) );
+            conn.setRequestProperty( "Authorization", basicAuth );
+        }
+        
+        return conn;
+    }
+    
     private ExecutionResponse sendExecute( boolean async )
                             throws OWSExceptionReport, XMLStreamException, IOException {
 
@@ -304,8 +322,8 @@ public class ProcessExecution extends AbstractProcessExecution {
 
         // TODO what if server only supports Get?
         URL url = client.getExecuteURL( true );
-
-        URLConnection conn = url.openConnection();
+        URLConnection conn = getURLConnectionWithAuth( url );
+        
         conn.setDoOutput( true );
         conn.setUseCaches( false );
         // TODO does this need configurability?
