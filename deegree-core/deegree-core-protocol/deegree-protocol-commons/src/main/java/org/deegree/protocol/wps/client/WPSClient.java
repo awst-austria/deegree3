@@ -278,6 +278,9 @@ public class WPSClient {
 
     // using LinkedHashMap because it keeps insertion order
     private final Map<String, Process> processIdSimpleToProcess = new LinkedHashMap<String, Process>();
+    
+    private String username = null;
+    private String password = null;
 
     /**
      * Creates a new {@link WPSClient} instance.
@@ -291,7 +294,14 @@ public class WPSClient {
      *             if a communication/network problem occured
      */
     public WPSClient( URL capabilitiesURL ) throws OWSExceptionReport, IOException {
+        this( capabilitiesURL, null, null );
+    }
+    
+    public WPSClient( URL capabilitiesURL, String username, String password ) throws OWSExceptionReport, IOException {
 
+        this.username = username;
+        this.password = password;
+        
         WPS100CapabilitiesAdapter capabilitiesDoc = retrieveCapabilities( capabilitiesURL );
 
         // TODO what if server only supports Get? What is optional and what is mandatory?
@@ -308,7 +318,15 @@ public class WPSClient {
             processIdSimpleToProcess.put( process.getId().getCode(), process );
         }
     }
+    
+    public String getUsername() {
+        return username;
+    }
 
+    public String getPassword() {
+        return password;
+    }
+    
     private WPS100CapabilitiesAdapter retrieveCapabilities( URL capabilitiesURL )
                             throws IOException {
 
@@ -316,7 +334,12 @@ public class WPSClient {
         try {
             LOG.trace( "Retrieving capabilities document from {}", capabilitiesURL );
             capabilitiesDoc = new WPS100CapabilitiesAdapter();
-            capabilitiesDoc.load( capabilitiesURL );
+            if ( username != null && password != null ) {
+                capabilitiesDoc.load( capabilitiesURL, username, password );
+
+            } else {
+                capabilitiesDoc.load( capabilitiesURL );
+            }
         } catch ( Exception e ) {
             String msg = "Unable to retrieve/parse capabilities document from URL '" + capabilitiesURL + "': "
                          + e.getMessage();

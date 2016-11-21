@@ -245,7 +245,17 @@ public class Process implements Serializable {
                                  + "&request=DescribeProcess&identifier="
                                  + URLEncoder.encode( processInfo.getId().getCode(), "UTF-8" );
             URL finalURL = new URL( finalURLStr );
-            XMLAdapter describeProcessResponse = new XMLAdapter( finalURL );
+            XMLAdapter describeProcessResponse = new XMLAdapter();
+            
+            String username = client.getUsername();
+            String password = client.getPassword();
+            
+            if ( username != null && password != null ) {
+                describeProcessResponse.load( finalURL, username, password );
+            } else {
+                describeProcessResponse.load( finalURL );
+            }
+            
             processDetails = new ProcessDetails( describeProcessResponse );
         }
         return processDetails;
