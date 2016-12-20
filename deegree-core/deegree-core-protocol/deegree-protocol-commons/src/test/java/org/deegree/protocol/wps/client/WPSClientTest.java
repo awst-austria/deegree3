@@ -675,4 +675,43 @@ public class WPSClientTest {
         ExecutionOutputs outputs = execution.getOutputs();
         Assert.assertTrue( outputs.getAll().length > 0 );
     }
+
+    @Test
+    public void testAuthentication()
+                            throws MalformedURLException, OWSExceptionReport, IOException, XMLStreamException,
+                            InterruptedException {
+
+        String demoWPSURL = TestProperties.getProperty( "demo_wps_authentication_url" );
+        String demoWPSProcessName = TestProperties.getProperty( "demo_wps_authentication_process_name" );
+        String demoWPSInputParam = TestProperties.getProperty( "demo_wps_authentication_input_url" );
+        String username = TestProperties.getProperty( "demo_wps_authentication_username" );
+        String password = TestProperties.getProperty( "demo_wps_authentication_password" );
+
+        Assume.assumeNotNull( demoWPSURL );
+        Assume.assumeNotNull( demoWPSProcessName );
+        Assume.assumeNotNull( demoWPSInputParam );
+        Assume.assumeNotNull( username );
+        Assume.assumeNotNull( password );
+
+        URL serviceUrl = new URL( demoWPSURL );
+        URL inputUrl = new URL( demoWPSInputParam );
+
+        WPSClient wpsClient = new WPSClient( serviceUrl, username, password );
+
+        Process proc = wpsClient.getProcess( demoWPSProcessName, null );
+        ProcessExecution execution = proc.prepareExecution();
+
+        execution.addBinaryInput( "infile", null, inputUrl, true, null, null );
+
+        execution.executeAsync();
+
+        while ( execution.getState() != ExecutionState.SUCCEEDED && execution.getState() != ExecutionState.FAILED ) {
+            System.out.println( String.format( "%s, %d, %s", execution.getState(), execution.getPercentCompleted(),
+                                               execution.getStatusLocation() ) );
+            Thread.sleep( 500 );
+        }
+
+        ExecutionOutputs outputs = execution.getOutputs();
+        Assert.assertTrue( outputs.getAll().length > 0 );
+    }
 }
