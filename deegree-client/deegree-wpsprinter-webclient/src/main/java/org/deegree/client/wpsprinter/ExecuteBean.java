@@ -126,7 +126,7 @@ public class ExecuteBean implements Serializable {
 
             ComplexOutput o = (ComplexOutput) exe.execute().get( outputTypes[0].getId().getCode(),
                                                                  outputTypes[0].getId().getCodeSpace() );
-            String link = o.getWebAccessibleURL().toASCIIString();
+            String link = o.getWebAccessibleURI().toASCIIString();
             LOG.debug( "Result can be found here: " + link );
             result = link;
         } catch ( Exception e ) {
