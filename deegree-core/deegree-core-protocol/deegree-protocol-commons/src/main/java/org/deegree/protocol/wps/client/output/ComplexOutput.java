@@ -70,8 +70,8 @@ public class ComplexOutput extends ExecutionOutput {
      * 
      * @param id
      *            output parameter identifier, must not be <code>null</code>
-     * @param uri
-     *            web-accessible URI for accessing the resource, must not be <code>null</code>
+     * @param url
+     *            web-accessible URL for accessing the resource, must not be <code>null</code>
      * @param mimeType
      *            mime type of the complex data, can be <code>null</code> (unspecified)
      * @param encoding
@@ -155,8 +155,8 @@ public class ComplexOutput extends ExecutionOutput {
      * @return the web-accessible URI, or <code>null</code> if the parameter has been returned in the response document
      *         or raw
      */
-    public URI getWebAccessibleURI() {
-        return uri;
+    public URL getWebAccessibleURL() {
+        return url;
     }
 
     /**
