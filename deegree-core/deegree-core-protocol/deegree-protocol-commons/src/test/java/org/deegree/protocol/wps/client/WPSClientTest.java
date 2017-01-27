@@ -714,4 +714,32 @@ public class WPSClientTest {
         ExecutionOutputs outputs = execution.getOutputs();
         Assert.assertTrue( outputs.getAll().length > 0 );
     }
+
+    @Test
+    public void testProcessDescriptionWithDefaultValue()
+                            throws OWSExceptionReport, IOException {
+
+        String demoWPSURL = TestProperties.getProperty( "demo_wps_url2" );
+        String demoWPSProcessorName = TestProperties.getProperty( "demo_wps_def_processor" );
+        Assume.assumeNotNull( demoWPSURL );
+        Assume.assumeNotNull( demoWPSProcessorName );
+
+        WPSClient wpsClient = new WPSClient( new URL( demoWPSURL ) );
+
+        org.deegree.protocol.wps.client.process.Process p1 = wpsClient.getProcess( demoWPSProcessorName );
+
+        Assert.assertNotNull( p1 );
+
+        boolean foundDefaultValue = false;
+
+        for ( InputType inputType : p1.getInputTypes() ) {
+            if ( inputType instanceof LiteralInputType ) {
+                LiteralInputType literal = (LiteralInputType) inputType;
+                if ( literal.getDefaultValue() != null )
+                    foundDefaultValue = true;
+            }
+        }
+
+        Assert.assertTrue( "Could not find default value for any of the literal inputs", foundDefaultValue );
+    }
 }
