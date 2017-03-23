@@ -186,7 +186,13 @@ public class CSWClient extends AbstractOWSClient<CSWCapabilitiesAdapter> {
     }
 
     public GetRecordsResponse getIsoRecords( int startPosition, int maxRecords, Filter constraint )
-            throws XMLProcessingException, IOException, OWSExceptionReport, XMLStreamException {
+                            throws XMLProcessingException, IOException, OWSExceptionReport, XMLStreamException {
+        return getIsoRecords( startPosition, maxRecords, constraint, null );
+    }
+    
+    public GetRecordsResponse getIsoRecords( int startPosition, int maxRecords, Filter constraint,
+                                             Map<String, String> headers )
+                            throws XMLProcessingException, IOException, OWSExceptionReport, XMLStreamException {
         GetRecords getRecords = new GetRecords(
                 new Version( 2, 0, 2 ),
                 startPosition,
@@ -197,7 +203,7 @@ public class CSWClient extends AbstractOWSClient<CSWCapabilitiesAdapter> {
                 ResultType.results,
                 ReturnableElement.full,
                 constraint );
-        return this.getRecords( getRecords );
+        return this.getRecords( getRecords, headers );
     }
 
     public GetRecordsResponse getRecords( int startPosition, int maxRecords, String outputFormat, String outputSchema,
@@ -211,6 +217,11 @@ public class CSWClient extends AbstractOWSClient<CSWCapabilitiesAdapter> {
 
     public GetRecordsResponse getRecords( GetRecords getRecords )
                             throws IOException, XMLProcessingException, OWSExceptionReport, XMLStreamException {
+        return getRecords( getRecords, null );
+    }
+
+    public GetRecordsResponse getRecords( GetRecords getRecords, Map<String, String> headers )
+                            throws IOException, XMLProcessingException, OWSExceptionReport, XMLStreamException {
 
         URL endPoint = getXMLPostUrl();
 
@@ -223,9 +234,8 @@ public class CSWClient extends AbstractOWSClient<CSWCapabilitiesAdapter> {
         } catch ( Throwable t ) {
             throw new RuntimeException( "Error creating XML request: " + getRecords, t );
         }
-        OwsHttpResponse response = httpClient.doPost( endPoint, "text/xml", request, null );
+        OwsHttpResponse response = httpClient.doPost( endPoint, "text/xml", request, headers );
         return new GetRecordsResponse( response );
-
     }
 
     public List<MetadataRecord> getRecordById( List<String> fileIdentifiers ) {
