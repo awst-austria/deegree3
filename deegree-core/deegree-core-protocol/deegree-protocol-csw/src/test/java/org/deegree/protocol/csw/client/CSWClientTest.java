@@ -6,7 +6,9 @@ import static org.deegree.commons.xml.CommonNamespaces.APISO_PREFIX;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
@@ -167,5 +169,24 @@ public class CSWClientTest {
         }
         
         Assert.assertTrue(recordsCounter > 0);
-    }    
+    }
+    
+    @Test
+    public void testHTTPHeaders() throws OWSExceptionReport, XMLStreamException, IOException {
+        String demoCSWURL = TestProperties.getProperty( "demo_csw_url" );
+        Assume.assumeNotNull( demoCSWURL );
+        URL serviceUrl = new URL( demoCSWURL );
+        CSWClient client = new CSWClient( serviceUrl );
+        Assert.assertNotNull( client );
+        
+        Map<String, String> headers = new HashMap<String, String>();
+        headers.put( "From", "somebody@somwhere.com" );
+        headers.put( "Warning", "199 Miscellaneous warning" );
+
+        GetRecordsResponse recordsResponse = client.getIsoRecords(1, 10, null, headers);
+        Assert.assertNotNull( recordsResponse );        
+        Assert.assertTrue( 10 >= recordsResponse.getNumberOfRecordsReturned() );
+        Assert.assertTrue( recordsResponse.getNumberOfRecordsReturned() >= 1 );
+        Assert.assertTrue( recordsResponse.getNumberOfRecordsMatched() >= 1 );
+    }
 }
