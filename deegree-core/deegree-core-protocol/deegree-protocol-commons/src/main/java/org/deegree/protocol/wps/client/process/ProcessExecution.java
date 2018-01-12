@@ -46,6 +46,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -91,7 +93,10 @@ public class ProcessExecution extends AbstractProcessExecution {
     private ResponseFormat responseFormat;
 
     private ExecutionResponse lastResponse;
-
+    
+    private String requestLogFileName;
+    private String firstResponseLogFileName;
+    
     /**
      * Creates a new {@link ProcessExecution} instance.
      * 
@@ -298,6 +303,14 @@ public class ProcessExecution extends AbstractProcessExecution {
         return lastResponse.getStatus().getExceptionReport();
     }
 
+    public String getRequestLogFileName() {
+        return requestLogFileName;
+    }
+
+    public String getFirstResponseLogFileName() {
+        return firstResponseLogFileName;
+    }
+
     private URLConnection getURLConnectionWithAuth( URL url )
                             throws IOException {
 
@@ -314,7 +327,7 @@ public class ProcessExecution extends AbstractProcessExecution {
         
         return conn;
     }
-    
+
     private ExecutionResponse sendExecute( boolean async )
                             throws OWSExceptionReport, XMLStreamException, IOException {
 
@@ -323,7 +336,7 @@ public class ProcessExecution extends AbstractProcessExecution {
         // TODO what if server only supports Get?
         URL url = client.getExecuteURL( true );
         URLConnection conn = getURLConnectionWithAuth( url );
-        
+
         conn.setDoOutput( true );
         conn.setUseCaches( false );
         // TODO does this need configurability?
@@ -333,15 +346,22 @@ public class ProcessExecution extends AbstractProcessExecution {
 
         OutputStream os = conn.getOutputStream();
 
-        if ( LOG.isDebugEnabled() ) {
-            File logFile = File.createTempFile( "wpsclient", "request.xml" );
-            XMLStreamWriter logWriter = outFactory.createXMLStreamWriter( new FileOutputStream( logFile ), "UTF-8" );
+        if ( LOG.isDebugEnabled() || ( client.getLogFolder() != null ) ) {
+
+            File logFile = File.createTempFile( "wpsclientrequest_", ".xml.gz", client.getLogFolder() );
+            // if log folder is null, this will go to the default temp dir
+            requestLogFileName = logFile.getName();
+            OutputStream fileStream = new GZIPOutputStream( new FileOutputStream( logFile ) );
+
+            XMLStreamWriter logWriter = outFactory.createXMLStreamWriter( fileStream, "UTF-8" );
             ExecuteRequest100Writer executer = new ExecuteRequest100Writer( logWriter );
             executer.write100( process.getId(), inputs, responseFormat );
             logWriter.close();
+            fileStream.close();
             LOG.debug( "WPS request can be found at " + logFile );
 
-            InputStream is = new FileInputStream( logFile );
+            InputStream is = new GZIPInputStream( new FileInputStream( logFile ) );
+
             byte[] buffer = new byte[1024];
             int read = 0;
             while ( ( read = is.read( buffer ) ) != -1 ) {
@@ -357,29 +377,32 @@ public class ProcessExecution extends AbstractProcessExecution {
         }
 
         InputStream responseStream;
-        
+
         // avoid java.io.IOException if server returned HTTP error code, rather get the OWSException
-        if(conn instanceof HttpURLConnection) {
+        if ( conn instanceof HttpURLConnection ) {
             HttpURLConnection httpConn = (HttpURLConnection) conn;
 
             int responseCode = httpConn.getResponseCode();
-            LOG.debug(String.format("WPS request returned response code: %d", responseCode));
+            LOG.debug( String.format( "WPS request returned response code: %d", responseCode ) );
 
             // See if we have an error - if so, process the error stream. If
             // not, get the input stream
             responseStream = httpConn.getErrorStream();
-            if (responseStream == null) {
+            if ( responseStream == null ) {
                 responseStream = httpConn.getInputStream();
             }
-        } 
+        }
         // revert to previous default behaviour if we don't have an HTTP connection
         else {
             responseStream = conn.getInputStream();
         }
 
-        if ( LOG.isDebugEnabled() ) {
-            File logFile = File.createTempFile( "wpsclient", "response" );
-            OutputStream logStream = new FileOutputStream( logFile );
+        if ( LOG.isDebugEnabled() || ( client.getLogFolder() != null ) ) {
+            File logFile = File.createTempFile( "wpsclientresponse_", ".xml.gz", client.getLogFolder() );
+            // if log folder is null, this will go to the default temp dir
+
+            firstResponseLogFileName = logFile.getName();
+            OutputStream logStream = new GZIPOutputStream( new FileOutputStream( logFile ) );
 
             byte[] buffer = new byte[1024];
             int read = 0;
@@ -388,7 +411,7 @@ public class ProcessExecution extends AbstractProcessExecution {
             }
             logStream.close();
 
-            responseStream = new FileInputStream( logFile );
+            responseStream = new GZIPInputStream( new FileInputStream( logFile ) );
             LOG.debug( "WPS response can be found at " + logFile );
         }
 
