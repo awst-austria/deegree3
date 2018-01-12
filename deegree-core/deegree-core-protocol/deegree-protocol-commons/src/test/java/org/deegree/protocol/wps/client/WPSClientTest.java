@@ -47,11 +47,13 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.Arrays;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import org.apache.commons.io.FileUtils;
 import org.deegree.commons.ows.metadata.OperationsMetadata;
 import org.deegree.commons.ows.metadata.ServiceIdentification;
 import org.deegree.commons.ows.metadata.ServiceProvider;
@@ -741,5 +743,58 @@ public class WPSClientTest {
         }
 
         Assert.assertTrue( "Could not find default value for any of the literal inputs", foundDefaultValue );
+    }
+
+    @Test
+    public void testLogFolder()
+                            throws Exception {
+
+        File testdir = Files.createTempDirectory( "wpslogtest" ).toFile();
+        Assert.assertNotNull( testdir );
+        Assert.assertTrue( testdir.exists() && testdir.isDirectory() );
+        System.out.println( "Writing to test dir " + testdir );
+
+        String demoWPSURL = TestProperties.getProperty( "demo_wps_url" );
+        Assume.assumeNotNull( demoWPSURL );
+
+        WPSClient wpsClient = new WPSClient( new URL( demoWPSURL ) );
+        wpsClient.setLogFolder( testdir );
+
+        Assert.assertTrue( wpsClient.getLogFolder().compareTo( testdir ) == 0 );
+
+        // normal WPS functionality test as above
+        org.deegree.protocol.wps.client.process.Process proc = wpsClient.getProcess( "Centroid", null );
+        ProcessExecution execution = proc.prepareExecution();
+        execution.addXMLInput( "GMLInput", null, CURVE_FILE.toURI(), false, "text/xml", null, null );
+        execution.addOutput( "Centroid", null, null, true, null, null, null );
+        ExecutionOutputs response = execution.execute();
+        assertEquals( ExecutionState.SUCCEEDED, execution.getState() );
+
+        ComplexOutput output = (ComplexOutput) response.get( 0 );
+        XMLStreamReader reader = output.getAsXMLStream();
+        XMLAdapter searchableXML = new XMLAdapter( reader );
+        NamespaceBindings nsContext = new NamespaceBindings();
+        nsContext.addNamespace( "wps", WPSConstants.WPS_100_NS );
+        nsContext.addNamespace( "gml", "http://www.opengis.net/gml" );
+        XPath xpath = new XPath( "/gml:Point/gml:pos/text()", nsContext );
+        String pos = searchableXML.getRequiredNodeAsString( searchableXML.getRootElement(), xpath );
+
+        String[] pair = pos.split( "\\s" );
+        Assert.assertNotNull( Double.parseDouble( pair[0] ) );
+        Assert.assertNotNull( Double.parseDouble( pair[1] ) );
+
+        // now check the logging worked
+        Assert.assertNotNull( execution.getRequestLogFileName() );
+        Assert.assertNotNull( execution.getFirstResponseLogFileName() );
+
+        File requestFile = new File( testdir, execution.getRequestLogFileName() );
+        File responseFile = new File( testdir, execution.getFirstResponseLogFileName() );
+
+        Assert.assertTrue( requestFile.exists() && requestFile.canRead() );
+        Assert.assertTrue( responseFile.exists() && responseFile.canRead() );
+        System.out.println( requestFile );
+        System.out.println( responseFile );
+
+        FileUtils.deleteDirectory( testdir );
     }
 }

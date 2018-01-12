@@ -35,6 +35,7 @@
  ----------------------------------------------------------------------------*/
 package org.deegree.protocol.wps.client;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -281,6 +282,8 @@ public class WPSClient {
     
     private String username = null;
     private String password = null;
+    
+    private File logFolder = null;
 
     /**
      * Creates a new {@link WPSClient} instance.
@@ -449,5 +452,17 @@ public class WPSClient {
      */
     public URL getExecuteURL( boolean post ) {
         return executeURLs[post ? 1 : 0];
+    }
+
+    public File getLogFolder() {
+        return logFolder;
+    }
+
+    public void setLogFolder( File logFolder ) {
+        if ( logFolder != null && ( !logFolder.exists() || !logFolder.isDirectory() ) ) {
+            throw new IllegalArgumentException( String.format( "Log folder is not a valid folder: %s", logFolder ) );
+        }
+
+        this.logFolder = logFolder;
     }
 }
