@@ -752,7 +752,7 @@ public class WPSClientTest {
         File testdir = Files.createTempDirectory( "wpslogtest" ).toFile();
         Assert.assertNotNull( testdir );
         Assert.assertTrue( testdir.exists() && testdir.isDirectory() );
-        System.out.println( "Writing to test dir " + testdir );
+        System.out.println( "Writing to test log dir " + testdir );
 
         String demoWPSURL = TestProperties.getProperty( "demo_wps_url" );
         Assume.assumeNotNull( demoWPSURL );
@@ -787,8 +787,8 @@ public class WPSClientTest {
         Assert.assertNotNull( execution.getRequestLogFileName() );
         Assert.assertNotNull( execution.getFirstResponseLogFileName() );
 
-        File requestFile = new File( testdir, execution.getRequestLogFileName() );
-        File responseFile = new File( testdir, execution.getFirstResponseLogFileName() );
+        File requestFile = new File( execution.getRequestLogFileName() );
+        File responseFile = new File( execution.getFirstResponseLogFileName() );
 
         Assert.assertTrue( requestFile.exists() && requestFile.canRead() );
         Assert.assertTrue( responseFile.exists() && responseFile.canRead() );

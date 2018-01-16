@@ -350,7 +350,7 @@ public class ProcessExecution extends AbstractProcessExecution {
 
             File logFile = File.createTempFile( "wpsclientrequest_", ".xml.gz", client.getLogFolder() );
             // if log folder is null, this will go to the default temp dir
-            requestLogFileName = logFile.getName();
+            requestLogFileName = logFile.getCanonicalPath();
             OutputStream fileStream = new GZIPOutputStream( new FileOutputStream( logFile ) );
 
             XMLStreamWriter logWriter = outFactory.createXMLStreamWriter( fileStream, "UTF-8" );
@@ -401,7 +401,7 @@ public class ProcessExecution extends AbstractProcessExecution {
             File logFile = File.createTempFile( "wpsclientresponse_", ".xml.gz", client.getLogFolder() );
             // if log folder is null, this will go to the default temp dir
 
-            firstResponseLogFileName = logFile.getName();
+            firstResponseLogFileName = logFile.getCanonicalPath();
             OutputStream logStream = new GZIPOutputStream( new FileOutputStream( logFile ) );
 
             byte[] buffer = new byte[1024];
