@@ -688,6 +688,8 @@ public class WPSClientTest {
                             InterruptedException, URISyntaxException {
 
         String demoWPSURL = TestProperties.getProperty( "demo_wps_authentication_url" );
+        String username = TestProperties.getProperty( "demo_wps_authentication_username" );
+        String password = TestProperties.getProperty( "demo_wps_authentication_password" );
         String demoWPSProcessName = TestProperties.getProperty( "demo_wps_authentication_process_name" );
         String demoWPSInputParam = TestProperties.getProperty( "demo_wps_input_uri" );
 
@@ -698,7 +700,7 @@ public class WPSClientTest {
         URL serviceUrl = new URL( demoWPSURL );
         URI inputUri = new URI( demoWPSInputParam );
 
-        WPSClient wpsClient = new WPSClient( serviceUrl );
+        WPSClient wpsClient = new WPSClient( serviceUrl, username, password );
 
         Process proc = wpsClient.getProcess( demoWPSProcessName, null );
         ProcessExecution execution = proc.prepareExecution();
