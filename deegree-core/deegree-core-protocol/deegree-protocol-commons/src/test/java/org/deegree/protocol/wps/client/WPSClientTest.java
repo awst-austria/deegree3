@@ -39,16 +39,20 @@ import static com.vividsolutions.jts.io.gml2.GMLConstants.GML_NAMESPACE;
 import static com.vividsolutions.jts.io.gml2.GMLConstants.GML_PREFIX;
 import static org.junit.Assert.assertEquals;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -67,6 +71,7 @@ import org.deegree.commons.xml.XPath;
 import org.deegree.protocol.ows.exception.OWSExceptionReport;
 import org.deegree.protocol.wps.WPSConstants;
 import org.deegree.protocol.wps.WPSConstants.ExecutionState;
+import org.deegree.protocol.wps.client.input.ExecutionInput;
 import org.deegree.protocol.wps.client.input.type.BBoxInputType;
 import org.deegree.protocol.wps.client.input.type.ComplexInputType;
 import org.deegree.protocol.wps.client.input.type.InputType;
@@ -83,6 +88,8 @@ import org.deegree.protocol.wps.client.process.ProcessExecution;
 import org.deegree.protocol.wps.client.process.RawProcessExecution;
 import org.deegree.protocol.wps.client.process.execute.ExecutionOutputs;
 import org.deegree.protocol.wps.client.process.execute.ExecutionResponse;
+import org.deegree.protocol.wps.client.wps100.ExecuteRequest100Reader;
+import org.deegree.protocol.wps.client.wps100.ExecuteRequest100Writer;
 import org.deegree.protocol.wps.client.wps100.ExecuteResponse100Reader;
 import org.junit.Assert;
 import org.junit.Assume;
@@ -90,11 +97,11 @@ import org.junit.Test;
 
 /**
  * JUnit class tests the functionality of the client.
- * 
+ *
  * @author <a href="mailto:schneider@lat-lon.de">Markus Schneider</a>
  * @author <a href="mailto:ionita@lat-lon.de">Andrei Ionita</a>
  * @author last edited by: $Author$
- * 
+ *
  * @version $Revision$, $Date$
  */
 public class WPSClientTest {
@@ -104,6 +111,11 @@ public class WPSClientTest {
     private static final File BINARY_INPUT = new File( WPSClientTest.class.getResource( "image.png" ).getPath() );
 
     private static final String REMOTE_BINARY_INPUT = "http://www.deegree.org/images/logos/deegree.png";
+
+    private static final File WPS_EXEC_REQ_1 = new File( WPSClientTest.class.getResource( "wps_exec_request_1.xml" ).getPath() );
+    private static final File WPS_EXEC_REQ_2 = new File( WPSClientTest.class.getResource( "wps_exec_request_2.xml.gz" ).getPath() );
+    private static final File WPS_EXEC_REQ_3 = new File( WPSClientTest.class.getResource( "wps_exec_request_3.xml" ).getPath() );
+    private static final File WPS_EXEC_REQ_4 = new File( WPSClientTest.class.getResource( "wps_exec_request_4.xml" ).getPath() );
 
     private static final String WPS_NS = "http://www.opengis.net/wps/1.0.0";
     private static final String OWS_NS = "http://www.opengis.net/ows/1.1";
@@ -121,7 +133,7 @@ public class WPSClientTest {
         ServiceIdentification serviceId = client.getMetadata().getServiceIdentification();
         Assert.assertNotNull( serviceId );
         Assert.assertEquals( 1, serviceId.getTitles().size() );
-        Assert.assertNotNull( serviceId.getTitles().get( 0 ).getString() ); 
+        Assert.assertNotNull( serviceId.getTitles().get( 0 ).getString() );
         Assert.assertEquals( 1, serviceId.getAbstracts().size() );
         Assert.assertNotNull( serviceId.getAbstracts().get( 0 ).getString() );
 
@@ -152,17 +164,17 @@ public class WPSClientTest {
         Assert.assertEquals( "PointOfContact", serviceContact.getRole().getCode() );
 
         OperationsMetadata opMetadata = client.getMetadata().getOperationsMetadata();
-        Operation op; 
-        
-        op = opMetadata.getOperation("GetCapabilities"); 
+        Operation op;
+
+        op = opMetadata.getOperation("GetCapabilities");
         Assert.assertNotNull( op.getGetUrls().get( 0 ).toExternalForm() );
         Assert.assertNotNull( op.getPostUrls().get( 0 ).toExternalForm() );
-        
-        op = opMetadata.getOperation("DescribeProcess"); 
+
+        op = opMetadata.getOperation("DescribeProcess");
         Assert.assertNotNull( op.getGetUrls().get( 0 ).toExternalForm() );
         Assert.assertNotNull( op.getPostUrls().get( 0 ).toExternalForm() );
-        
-        op = opMetadata.getOperation("Execute"); 
+
+        op = opMetadata.getOperation("Execute");
         Assert.assertNotNull( op.getGetUrls().get( 0 ).toExternalForm() );
         Assert.assertNotNull( op.getPostUrls().get( 0 ).toExternalForm() );
     }
@@ -485,7 +497,7 @@ public class WPSClientTest {
         XPath xpath = new XPath( "/wps:Capabilities/ows:ServiceIdentification/ows:ServiceType", nsContext );
         String pos = searchableXML.getRequiredNodeAsString( searchableXML.getRootElement(), xpath );
         Assert.assertEquals( pos, "WPS" );
-        
+
         InputStream binaryStream = outputs.getComplex( "BinaryOutput", null ).getAsBinaryStream();
         Assert.assertNotNull( binaryStream );
         binaryStream.close();
@@ -642,7 +654,7 @@ public class WPSClientTest {
         execution.executeAsync();
         Assert.assertTrue(execution.getState() != ExecutionState.SUCCEEDED); // we shouldn't arrive here
     }
-    
+
     @Test
     public void testAuthentication()
                             throws MalformedURLException, OWSExceptionReport, IOException, XMLStreamException,
@@ -798,5 +810,42 @@ public class WPSClientTest {
         System.out.println( responseFile );
 
         FileUtils.deleteDirectory( testdir );
+    }
+
+    @Test
+    public void testLoadInputsFromFile()
+                            throws IOException,
+                            OWSExceptionReport,
+                            XMLStreamException {
+        String[] filenames = { WPS_EXEC_REQ_1.toString(),
+                               WPS_EXEC_REQ_2.toString(),
+                               WPS_EXEC_REQ_3.toString(),
+                               WPS_EXEC_REQ_4.toString() };
+
+        for ( String filename : filenames ) {
+            // load from logged execute requests
+            List<ExecutionInput> inputList = ExecuteRequest100Reader.loadProcessInputsFromFile( filename );
+            Assert.assertNotNull( inputList );
+            Assert.assertTrue( inputList.size() >= 1 );
+
+            // eat your own dog food.
+            OutputStream outStream = new ByteArrayOutputStream();
+            ExecuteRequest100Writer.writeInputParametersToStream( inputList, outStream );
+            String xmlString = outStream.toString();
+            outStream.close();
+
+            Assert.assertTrue( xmlString != null && !"".equals( xmlString ) );
+
+            InputStream inStream = new ByteArrayInputStream( xmlString.getBytes() );
+            List<ExecutionInput> inputList2 = ExecuteRequest100Reader.loadProcessInputsFromStream( inStream );
+            inStream.close();
+
+            outStream = new ByteArrayOutputStream();
+            ExecuteRequest100Writer.writeInputParametersToStream( inputList2, outStream );
+            String xmlString2 = outStream.toString();
+            outStream.close();
+
+            Assert.assertEquals( xmlString, xmlString2 );
+        }
     }
 }

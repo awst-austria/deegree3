@@ -35,14 +35,21 @@
  ----------------------------------------------------------------------------*/
 package org.deegree.protocol.wps.client.wps100;
 
+import static org.deegree.commons.xml.CommonNamespaces.OWS_11_NS;
 import static org.deegree.commons.xml.CommonNamespaces.XLINK_PREFIX;
 import static org.deegree.commons.xml.CommonNamespaces.XLNNS;
+import static org.deegree.commons.xml.CommonNamespaces.XSINS;
+import static org.deegree.commons.xml.CommonNamespaces.XSI_PREFIX;
+import static org.deegree.protocol.wps.WPSConstants.WPS_100_NS;
+import static org.deegree.protocol.wps.WPSConstants.WPS_PREFIX;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 
+import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -63,39 +70,47 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Generates WPS 1.0.0 Execute request documents.
- * 
+ *
  * @author <a href="mailto:ionita@lat-lon.de">Andrei Ionita</a>
  * @author <a href="mailto:schneider@lat-lon.de">Markus Schneider</a>
  * @author last edited by: $Author$
- * 
+ *
  * @version $Revision$, $Date$
  */
 public class ExecuteRequest100Writer {
 
     private static Logger LOG = LoggerFactory.getLogger( ExecuteRequest100Writer.class );
 
-    private static final String wpsPrefix = "wps";
-
-    private static final String xsiPrefix = "xsi";
-
     private static final String owsPrefix = "ows";
-
-    private static final String wpsNS = "http://www.opengis.net/wps/1.0.0";
-
-    private static final String owsNS = "http://www.opengis.net/ows/1.1";
-
-    private static final String xsiNS = "http://www.w3.org/2001/XMLSchema-instance";
 
     private final XMLStreamWriter writer;
 
     /**
      * Creates a new {@link ExecuteRequest100Writer} instance.
-     * 
+     *
      * @param writer
      *            xml stream to write to, must not be <code>null</code> and empty
      */
     public ExecuteRequest100Writer( XMLStreamWriter writer ) {
         this.writer = writer;
+    }
+
+    /**
+     * (Convenience) method to write a list of ExecutionInput objects for a process to an OutputStream,
+     * serialised as XML.
+     * @param inputs the list of ExecutionInput objects describing the inputs to the execution
+     * @param outStream the stream to write to
+     * @throws IOException
+     * @throws XMLStreamException
+     */
+    public static void writeInputParametersToStream( List<ExecutionInput> inputs, OutputStream outStream )
+                            throws XMLStreamException,
+                            IOException {
+        XMLOutputFactory outFactory = XMLOutputFactory.newInstance();
+        XMLStreamWriter writer = outFactory.createXMLStreamWriter( outStream, "UTF-8" );
+        ExecuteRequest100Writer execWriter = new ExecuteRequest100Writer( writer );
+        execWriter.writeInputs( inputs, true );
+        writer.close();
     }
 
     /**
@@ -109,24 +124,29 @@ public class ExecuteRequest100Writer {
                             throws IOException, XMLStreamException {
 
         writer.writeStartDocument( "UTF-8", "1.0" );
-        writer.writeStartElement( wpsPrefix, "Execute", wpsNS );
+        writer.writeStartElement( WPS_PREFIX, "Execute", WPS_100_NS );
         writer.writeAttribute( "service", "WPS" );
         writer.writeAttribute( "version", "1.0.0" );
-        String schemaLocation = "http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsExecute_request.xsd";
-        writer.writeAttribute( "xsi", "http://www.w3.org/2001/XMLSchema-instance", "schemaLocation", schemaLocation );
 
-        writer.writeNamespace( wpsPrefix, wpsNS );
-        writer.writeNamespace( owsPrefix, owsNS );
-        writer.writeNamespace( xsiPrefix, xsiNS );
-        writer.writeNamespace( XLINK_PREFIX, XLNNS );
+        writeNamespaces();
 
         writeHeader( id );
-        writeInputs( inputs );
+        writeInputs( inputs, false );
         writeOutputs( responseFormat );
 
         writer.writeEndElement();
         writer.writeEndDocument();
 
+    }
+
+    private void writeNamespaces() throws XMLStreamException {
+        String schemaLocation = "http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsExecute_request.xsd";
+        writer.writeAttribute( "xsi", "http://www.w3.org/2001/XMLSchema-instance", "schemaLocation", schemaLocation );
+
+        writer.writeNamespace( WPS_PREFIX, WPS_100_NS );
+        writer.writeNamespace( owsPrefix, OWS_11_NS );
+        writer.writeNamespace( XSI_PREFIX, XSINS );
+        writer.writeNamespace( XLINK_PREFIX, XLNNS );
     }
 
     /**
@@ -139,16 +159,16 @@ public class ExecuteRequest100Writer {
             List<OutputFormat> outputs = outputFormat.getOutputDefinitions();
 
             if ( outputs != null && outputs.size() > 0 ) {
-                writer.writeStartElement( wpsPrefix, "ResponseForm", wpsNS );
+                writer.writeStartElement( WPS_PREFIX, "ResponseForm", WPS_100_NS );
 
                 if ( !outputFormat.returnRawOutput() ) {
-                    writer.writeStartElement( wpsPrefix, "ResponseDocument", wpsNS );
+                    writer.writeStartElement( WPS_PREFIX, "ResponseDocument", WPS_100_NS );
                     writer.writeAttribute( "storeExecuteResponse", String.valueOf( outputFormat.storeResponse() ) );
                     writer.writeAttribute( "lineage", String.valueOf( outputFormat.includeInputs() ) );
                     writer.writeAttribute( "status", String.valueOf( outputFormat.updateStatus() ) );
 
                     for ( OutputFormat outputDef : outputs ) {
-                        writer.writeStartElement( wpsPrefix, "Output", wpsNS );
+                        writer.writeStartElement( WPS_PREFIX, "Output", WPS_100_NS );
                         if ( outputDef.isReference() ) {
                             writer.writeAttribute( "asReference", "true" );
                         }
@@ -164,7 +184,7 @@ public class ExecuteRequest100Writer {
                     writer.writeEndElement();
 
                 } else {
-                    writer.writeStartElement( wpsPrefix, "RawDataOutput", wpsNS );
+                    writer.writeStartElement( WPS_PREFIX, "RawDataOutput", WPS_100_NS );
 
                     if ( outputFormat.getOutputDefinitions().get( 0 ).getUom() != null ) {
                         writer.writeAttribute( "uom", outputFormat.getOutputDefinitions().get( 0 ).getUom() );
@@ -197,7 +217,7 @@ public class ExecuteRequest100Writer {
 
     private void writeIdentifier( CodeType id )
                             throws XMLStreamException {
-        writer.writeStartElement( "ows", "Identifier", owsNS );
+        writer.writeStartElement( "ows", "Identifier", OWS_11_NS );
         if ( id.getCodeSpace() != null ) {
             writer.writeCharacters( id.getCodeSpace() + ":" + id.getCode() );
         } else {
@@ -211,18 +231,21 @@ public class ExecuteRequest100Writer {
         writeIdentifier( id );
     }
 
-    private void writeInputs( List<ExecutionInput> inputList )
+    private void writeInputs( List<ExecutionInput> inputList, boolean writeNamespaces )
                             throws XMLStreamException, IOException {
         if ( inputList != null && inputList.size() > 0 ) {
-            writer.writeStartElement( wpsPrefix, "DataInputs", wpsNS );
+            writer.writeStartElement( WPS_PREFIX, "DataInputs", WPS_100_NS );
+
+            if ( writeNamespaces )
+                writeNamespaces();
 
             for ( int i = 0; i < inputList.size(); i++ ) {
                 ExecutionInput dataInput = inputList.get( i );
-                writer.writeStartElement( wpsPrefix, "Input", wpsNS );
+                writer.writeStartElement( WPS_PREFIX, "Input", WPS_100_NS );
                 writeIdentifier( dataInput.getId() );
 
                 if ( dataInput.getWebAccessibleURI() != null ) {
-                    writer.writeStartElement( wpsPrefix, "Reference", wpsNS );
+                    writer.writeStartElement( WPS_PREFIX, "Reference", WPS_100_NS );
                     writer.writeAttribute( XLINK_PREFIX, XLNNS, "href",
                                            dataInput.getWebAccessibleURI().toASCIIString() );
                     if ( dataInput instanceof XMLInput ) {
@@ -230,10 +253,10 @@ public class ExecuteRequest100Writer {
                     }
                     writer.writeEndElement();
                 } else {
-                    writer.writeStartElement( wpsPrefix, "Data", wpsNS );
+                    writer.writeStartElement( WPS_PREFIX, "Data", WPS_100_NS );
                     if ( dataInput instanceof XMLInput ) {
                         XMLInput complexInput = (XMLInput) dataInput;
-                        writer.writeStartElement( wpsPrefix, "ComplexData", wpsNS );
+                        writer.writeStartElement( WPS_PREFIX, "ComplexData", WPS_100_NS );
 
                         writeComplexAttributes( complexInput.getFormat() );
 
@@ -247,7 +270,7 @@ public class ExecuteRequest100Writer {
                         BinaryInput binaryInput = (BinaryInput) dataInput;
 
                         try {
-                            writer.writeStartElement( wpsPrefix, "ComplexData", wpsNS );
+                            writer.writeStartElement( WPS_PREFIX, "ComplexData", WPS_100_NS );
                             byte[] buffer = new byte[1024];
                             int read = -1;
                             InputStream is = binaryInput.getAsBinaryStream();
@@ -272,7 +295,7 @@ public class ExecuteRequest100Writer {
 
                     } else if ( dataInput instanceof LiteralInput ) {
                         LiteralInput literalDataType = (LiteralInput) dataInput;
-                        writer.writeStartElement( wpsPrefix, "LiteralData", wpsNS );
+                        writer.writeStartElement( WPS_PREFIX, "LiteralData", WPS_100_NS );
 
                         if ( literalDataType.getDataType() != null ) {
                             writer.writeAttribute( "dataType", literalDataType.getDataType() );
@@ -285,16 +308,16 @@ public class ExecuteRequest100Writer {
 
                     } else if ( dataInput instanceof BBoxInput ) {
                         BBoxInput bboxInput = (BBoxInput) dataInput;
-                        writer.writeStartElement( wpsPrefix, "BoundingBoxData", wpsNS );
+                        writer.writeStartElement( WPS_PREFIX, "BoundingBoxData", WPS_100_NS );
                         writer.writeAttribute( "dimensions", String.valueOf( bboxInput.getDimension() ) );
                         if ( bboxInput.getCrs() != null ) {
                             writer.writeAttribute( "crs", bboxInput.getCrs() );
                         }
-                        writer.writeStartElement( owsPrefix, "LowerCorner", owsNS );
+                        writer.writeStartElement( owsPrefix, "LowerCorner", OWS_11_NS );
                         writePoint( writer, bboxInput.getLower() );
                         writer.writeEndElement();
 
-                        writer.writeStartElement( owsPrefix, "UpperCorner", owsNS );
+                        writer.writeStartElement( owsPrefix, "UpperCorner", OWS_11_NS );
                         writePoint( writer, bboxInput.getUpper() );
                         writer.writeEndElement();
 
