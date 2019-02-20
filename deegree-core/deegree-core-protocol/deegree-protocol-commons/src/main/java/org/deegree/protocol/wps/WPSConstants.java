@@ -57,6 +57,9 @@ public class WPSConstants {
     /** WPS protocol version 1.0.0 */
     public static final Version VERSION_100 = Version.parseVersion( "1.0.0" );
 
+    /** The expression a mimetype needs to match so that we consider it xml */
+    public static final String XML_MIMETYPE_EXPR = "^(text|application)/.*\\bxml\\b.*";
+
     /**
      * Enum type for discriminating between the different types of WebProcessingService (WPS) requests.
      * 

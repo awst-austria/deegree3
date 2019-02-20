@@ -38,6 +38,8 @@ package org.deegree.protocol.wps.client.wps100;
 import static javax.xml.stream.XMLStreamConstants.END_DOCUMENT;
 import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
+import static org.deegree.protocol.wps.WPSConstants.WPS_100_NS;
+import static org.deegree.protocol.wps.WPSConstants.XML_MIMETYPE_EXPR;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -63,7 +65,6 @@ import org.deegree.commons.xml.XMLAdapter;
 import org.deegree.commons.xml.stax.XMLStreamUtils;
 import org.deegree.protocol.ows.exception.OWSExceptionReader;
 import org.deegree.protocol.ows.exception.OWSExceptionReport;
-import org.deegree.protocol.wps.WPSConstants;
 import org.deegree.protocol.wps.WPSConstants.ExecutionState;
 import org.deegree.protocol.wps.client.output.BBoxOutput;
 import org.deegree.protocol.wps.client.output.ComplexOutput;
@@ -292,8 +293,7 @@ public class ExecuteResponse100Reader {
 
         StreamBufferStore tmpSink = new StreamBufferStore();
         try {
-            if ( attribs.getMimeType().matches( "^text/.*\\bxml\\b.*" ) || 
-                 attribs.getMimeType().matches( "^application/.*\\bxml\\b.*" ) ) {
+            if ( attribs.getMimeType().matches( XML_MIMETYPE_EXPR ) ) {
                 XMLOutputFactory fac = XMLOutputFactory.newInstance();
                 fac.setProperty( XMLOutputFactory.IS_REPAIRING_NAMESPACES, true );
                 XMLStreamWriter xmlWriter = fac.createXMLStreamWriter( tmpSink, "UTF-8" );
@@ -422,7 +422,9 @@ public class ExecuteResponse100Reader {
                             throws OWSExceptionReport, IOException, XMLStreamException {
         LOG.debug( "Polling response document from status location: " + url );
         InputStream is = url.openStream();
-        return createExecutionResponseFromStream( is );
+        ExecutionResponse response = createExecutionResponseFromStream( is );
+        is.close();
+        return response;
     }
 
     /**
@@ -443,7 +445,7 @@ public class ExecuteResponse100Reader {
             throw OWSExceptionReader.parseExceptionReport( xmlReader );
         }
 
-        if ( !new QName( WPSConstants.WPS_100_NS, "ExecuteResponse" ).equals( xmlReader.getName() ) ) {
+        if ( !new QName( WPS_100_NS, "ExecuteResponse" ).equals( xmlReader.getName() ) ) {
             throw new RuntimeException( "Unexpected Execute response: root element is '" + xmlReader.getName() + "'" );
         }
 

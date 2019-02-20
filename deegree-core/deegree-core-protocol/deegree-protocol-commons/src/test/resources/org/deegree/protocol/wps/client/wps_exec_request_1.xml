@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<wps:Execute service="WPS" version="1.0.0"
+    xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsExecute_request.xsd"
+    xmlns:wps="http://www.opengis.net/wps/1.0.0"
+    xmlns:ows="http://www.opengis.net/ows/1.1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+    <ows:Identifier>ParameterDemoProcess</ows:Identifier>
+    <wps:DataInputs>
+        <wps:Input>
+            <ows:Identifier>LiteralInput</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData uom="seconds">5</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+        <wps:Input>
+            <ows:Identifier>BBOXInput</ows:Identifier>
+            <wps:Data>
+                <wps:BoundingBoxData dimensions="2"
+                    crs="EPSG:4326">
+                    <ows:LowerCorner>0.0 0.0</ows:LowerCorner>
+                    <ows:UpperCorner>10.0 10.0</ows:UpperCorner>
+                </wps:BoundingBoxData>
+            </wps:Data>
+        </wps:Input>
+        <wps:Input>
+            <ows:Identifier>XMLInput</ows:Identifier>
+            <wps:Reference
+                xlink:href="http://www.w3schools.com/xml/plant_catalog.xml"
+                mimeType="text/xml" />
+        </wps:Input>
+        <wps:Input>
+            <ows:Identifier>BinaryInput</ows:Identifier>
+            <wps:Reference
+                xlink:href="http://www.deegree.org/images/logos/deegree.png" />
+        </wps:Input>
+    </wps:DataInputs>
+    <wps:ResponseForm>
+        <wps:ResponseDocument
+            storeExecuteResponse="true" lineage="false" status="true">
+            <wps:Output>
+                <ows:Identifier>LiteralOutput</ows:Identifier>
+            </wps:Output>
+            <wps:Output>
+                <ows:Identifier>BBOXOutput</ows:Identifier>
+            </wps:Output>
+            <wps:Output>
+                <ows:Identifier>XMLOutput</ows:Identifier>
+            </wps:Output>
+            <wps:Output>
+                <ows:Identifier>BinaryOutput</ows:Identifier>
+            </wps:Output>
+        </wps:ResponseDocument>
+    </wps:ResponseForm>
+</wps:Execute>
