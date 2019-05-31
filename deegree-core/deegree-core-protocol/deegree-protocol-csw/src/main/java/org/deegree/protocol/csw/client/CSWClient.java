@@ -187,11 +187,12 @@ public class CSWClient extends AbstractOWSClient<CSWCapabilitiesAdapter> {
 
     public GetRecordsResponse getIsoRecords( int startPosition, int maxRecords, Filter constraint )
                             throws XMLProcessingException, IOException, OWSExceptionReport, XMLStreamException {
-        return getIsoRecords( startPosition, maxRecords, constraint, null );
+        return getIsoRecords( startPosition, maxRecords, constraint, null, ResultType.results, ReturnableElement.full );
     }
     
     public GetRecordsResponse getIsoRecords( int startPosition, int maxRecords, Filter constraint,
-                                             Map<String, String> headers )
+                                             Map<String, String> headers, ResultType mode,
+                                             ReturnableElement verbosity )
                             throws XMLProcessingException, IOException, OWSExceptionReport, XMLStreamException {
         GetRecords getRecords = new GetRecords(
                 new Version( 2, 0, 2 ),

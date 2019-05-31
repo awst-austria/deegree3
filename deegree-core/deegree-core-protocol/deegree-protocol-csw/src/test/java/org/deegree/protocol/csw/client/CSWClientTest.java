@@ -31,6 +31,8 @@ import org.deegree.filter.expression.Literal;
 import org.deegree.filter.expression.ValueReference;
 import org.deegree.filter.logical.Or;
 import org.deegree.metadata.MetadataRecord;
+import org.deegree.protocol.csw.CSWConstants.ResultType;
+import org.deegree.protocol.csw.CSWConstants.ReturnableElement;
 import org.deegree.protocol.csw.client.getrecords.GetRecordsResponse;
 import org.deegree.protocol.ows.exception.OWSExceptionReport;
 import org.junit.Assert;
@@ -183,7 +185,7 @@ public class CSWClientTest {
         headers.put( "From", "somebody@somwhere.com" );
         headers.put( "Warning", "199 Miscellaneous warning" );
 
-        GetRecordsResponse recordsResponse = client.getIsoRecords( 1, 10, null, headers );
+        GetRecordsResponse recordsResponse = client.getIsoRecords( 1, 10, null, headers, ResultType.results, ReturnableElement.full );
         Assert.assertNotNull( recordsResponse );
         Assert.assertTrue( 10 >= recordsResponse.getNumberOfRecordsReturned() );
         Assert.assertTrue( recordsResponse.getNumberOfRecordsReturned() >= 1 );
