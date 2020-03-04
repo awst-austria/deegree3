@@ -379,6 +379,7 @@
 
           <repositoryName>deegree3</repositoryName>       <!-- github repo name -->
           <repositoryOwner>awst-baum</repositoryOwner>    <!-- github username -->
+          <server>github</server>
         </configuration>
         <executions>
           <!-- run site-maven-plugin's 'site' target as part of the build's normal 'deploy' phase -->
