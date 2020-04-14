@@ -378,7 +378,7 @@
           </includes>
 
           <repositoryName>deegree3</repositoryName>       <!-- github repo name -->
-          <repositoryOwner>awst-baum</repositoryOwner>    <!-- github username -->
+          <repositoryOwner>awst-austria</repositoryOwner>    <!-- github username -->
           <server>github</server>
         </configuration>
         <executions>
